@@ -48,6 +48,10 @@ This document combines comprehensive use cases for recommendation systems and pe
 **When to Use**: Homepage, category landing pages
 **Data Required**: Sales velocity, trending metrics, user segments
 **Algorithms**: Time-decayed popularity, trend detection
+
+*dodo* does not fully support this usecase now. To achieve this:
+- Retrieve trending products by counting the frequency of products purchased within a window of time. 
+- Then, use *dodo* to rerank these products based on user preferences and context. Reranking attempts to optimize for user engagement and conversion.
 **Template**: [test_trending_products.py](templates/test_trending_products.py)
 
 #### 1.6 "Complete Your Collection" Category Recommendations

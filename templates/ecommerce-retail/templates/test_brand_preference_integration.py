@@ -110,6 +110,62 @@ def test_brand_preference_integration_(token_data: TokenData, project_id: str):
         return None
 
 
+def upload_entities(project_id: str, token_data: dict):
+    """Upload product entities to project using the entities service"""
+
+    url = os.getenv("ENTITIES_URL", os.getenv("DODO_URL")).rstrip("/")
+
+    headers = {
+        "Authorization": f"Bearer {token_data['access_token']}",
+    }
+
+    try:
+        print("=== Uploading Product Entities ===")
+
+        with (
+            open("product_catalog.csv", "rb") as catalog_file,
+            open("entity_template.json", "rb") as template_file,
+        ):
+
+            files = {
+                "files": ("entities.csv", catalog_file, "text/csv"),
+                "template_file": (
+                    "entity_template.json",
+                    template_file,
+                    "application/json",
+                ),
+            }
+
+            response = requests.post(
+                url=f"{url}/api/entities/ingest",
+                params={
+                    "project_id": project_id,
+                    "user_id": token_data["user_id"],
+                    "source": "files",
+                    "primary_key": "entity_id",
+                    "model_key": "bert",
+                },
+                headers=headers,
+                files=files,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                print("✓ Entity ingestion successful!")
+                print(f"Response: {result}")
+                return result
+            else:
+                print(f"✗ Entity ingestion failed: {response.text}")
+                return None
+
+    except Exception as e:
+        print(f"Entity ingestion failed: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            print(f"Response status: {e.response.status_code}")
+            print(f"Response content: {e.response.text}")
+        return None
+
+
 if __name__ == "__main__":
     email = "YOUR_EMAIL_ADDRESS"
     password = "YOUR_PASSWORD"
@@ -124,5 +180,19 @@ if __name__ == "__main__":
         description="Test project for brand preference recommendations",
     )
 
+    # Upload entities (aka products in e-commerce and retail contexts)
+    upload_entities(project_id, token_data)
+
     # Make recommendations
     test_brand_preference_integration_(token_data, project_id)
+
+    # Possible result:
+    # {
+    #   "status_code": 200,
+    #   "results": [
+    #     "nike_shoes_001",
+    #     "nike_shoes_002",
+    #     "adidas_shoes_001",
+    #     "puma_shoes_001"
+    #   ]
+    # }

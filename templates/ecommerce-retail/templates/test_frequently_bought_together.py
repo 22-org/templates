@@ -4,6 +4,7 @@ Product bundles that are commonly purchased as a set
 """
 
 import os
+
 import requests
 from dotenv import load_dotenv
 from shared.auth import TokenData
@@ -61,7 +62,7 @@ def generate_project(
 def test_frequently_bought_together(token_data: TokenData, project_id: str):
     """Test 'Frequently Bought Together' Bundles"""
     url = os.getenv("DODO_URL").rstrip("/")
-    
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token_data['access_token']}",
@@ -70,9 +71,9 @@ def test_frequently_bought_together(token_data: TokenData, project_id: str):
     sequence_data = {
         "current_product": "smartphone",
         "related_products": ["phone_case", "screen_protector"],
-        "bundle_savings": 15.0
+        "bundle_savings": 15.0,
     }
-    
+
     template = (
         "Suggest product bundles that include {current_product} with "
         "{related_products}, offering {bundle_savings}% savings"
@@ -84,7 +85,7 @@ def test_frequently_bought_together(token_data: TokenData, project_id: str):
         print("=== Testing Frequently Bought Together ===")
         print(f"Template: {template}")
         print(f"Sequence Data: {sequence_data}")
-        
+
         response = requests.post(
             url=f"{url}/api/recommend/recommend",
             params={
@@ -96,7 +97,7 @@ def test_frequently_bought_together(token_data: TokenData, project_id: str):
             headers=headers,
             json=payload,
         )
-        
+
         print(f"Response Status: {response.status_code}")
         if response.status_code == 200:
             result = response.json()
@@ -111,6 +112,62 @@ def test_frequently_bought_together(token_data: TokenData, project_id: str):
         return None
 
 
+def upload_entities(project_id: str, token_data: dict):
+    """Upload product entities to project using the entities service"""
+
+    url = os.getenv("ENTITIES_URL", os.getenv("DODO_URL")).rstrip("/")
+
+    headers = {
+        "Authorization": f"Bearer {token_data['access_token']}",
+    }
+
+    try:
+        print("=== Uploading Product Entities ===")
+
+        with (
+            open("product_catalog.csv", "rb") as catalog_file,
+            open("entity_template.json", "rb") as template_file,
+        ):
+
+            files = {
+                "files": ("entities.csv", catalog_file, "text/csv"),
+                "template_file": (
+                    "entity_template.json",
+                    template_file,
+                    "application/json",
+                ),
+            }
+
+            response = requests.post(
+                url=f"{url}/api/entities/ingest",
+                params={
+                    "project_id": project_id,
+                    "user_id": token_data["user_id"],
+                    "source": "files",
+                    "primary_key": "entity_id",
+                    "model_key": "bert",
+                },
+                headers=headers,
+                files=files,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                print("✓ Entity ingestion successful!")
+                print(f"Response: {result}")
+                return result
+            else:
+                print(f"✗ Entity ingestion failed: {response.text}")
+                return None
+
+    except Exception as e:
+        print(f"Entity ingestion failed: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            print(f"Response status: {e.response.status_code}")
+            print(f"Response content: {e.response.text}")
+        return None
+
+
 if __name__ == "__main__":
     email = "YOUR_EMAIL_ADDRESS"
     password = "YOUR_PASSWORD"
@@ -122,8 +179,22 @@ if __name__ == "__main__":
     # Generate project
     project_id = generate_project(
         name="Frequently Bought Together Test",
-        description="Test project for test frequently bought together recommendations",
+        description="Test project for frequently bought together recommendations",  # noqa
     )
+
+    # Upload entities (aka products in e-commerce and retail contexts)
+    upload_entities(project_id, token_data)
 
     # Make recommendations
     test_frequently_bought_together(token_data, project_id)
+
+    # Possible result:
+    # {
+    #   "status_code": 200,
+    #   "results": [
+    #     "phone_case_001",
+    #     "screen_protector_001",
+    #     "wireless_charger_001",
+    #     "bluetooth_earbuds_001"
+    #   ]
+    # }

@@ -1,0 +1,13 @@
+{
+    "template": "Show trending products in {trending_categories} for {user_segment} from {time_period}, then rerank based on user preferences",
+    "required_fields": [
+        "trending_categories",
+        "user_segment",
+        "time_period"
+    ],
+    "output_fields": [
+        "recommended_products",
+        "trending_scores",
+        "rerank_adjustments"
+    ]
+}

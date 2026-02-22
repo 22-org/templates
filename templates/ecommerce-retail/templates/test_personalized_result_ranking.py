@@ -3,6 +3,7 @@ Test Case: 'Personalized Result Ranking' Reorder search results based on user be
 """
 
 import os
+
 import requests
 from dotenv import load_dotenv
 from shared.auth import TokenData
@@ -60,14 +61,19 @@ def generate_project(
 def test_personalized_result_ranking_(token_data: TokenData, project_id: str):
     """Test 'Personalized Result Ranking'"""
     url = os.getenv("DODO_URL").rstrip("/")
-    
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token_data['access_token']}",
     }
 
-    sequence_data = {"search_query": "laptop", "user_history": ["electronics", "computers", "gaming"], "purchase_history": ["dell_xps", "macbook_pro"], "price_sensitivity": "medium"}
-    
+    sequence_data = {
+        "search_query": "laptop",
+        "user_history": ["electronics", "computers", "gaming"],
+        "purchase_history": ["dell_xps", "macbook_pro"],
+        "price_sensitivity": "medium",
+    }
+
     template = "Rank search results for '{search_query}' based on user's history with {user_history} and purchases of {purchase_history}"  # noqa
 
     payload = {"sequence_data": sequence_data, "template": template}
@@ -76,7 +82,7 @@ def test_personalized_result_ranking_(token_data: TokenData, project_id: str):
         print("=== Testing Personalized Result Ranking ===")
         print(f"Template: {template}")
         print(f"Sequence Data: {sequence_data}")
-        
+
         response = requests.post(
             url=f"{url}/api/recommend/recommend",
             params={
@@ -88,7 +94,7 @@ def test_personalized_result_ranking_(token_data: TokenData, project_id: str):
             headers=headers,
             json=payload,
         )
-        
+
         print(f"Response Status: {response.status_code}")
         if response.status_code == 200:
             result = response.json()
@@ -114,7 +120,7 @@ if __name__ == "__main__":
     # Generate project
     project_id = generate_project(
         name="Personalized Result Ranking  Test",
-        description="Test project for test personalized result ranking  recommendations",
+        description="Test project for test personalized result ranking  recommendations",  # noqa
     )
 
     # Make recommendations

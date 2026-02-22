@@ -3,6 +3,7 @@ Test Case: 'Price Range Alternatives' Similar products in different price ranges
 """
 
 import os
+
 import requests
 from dotenv import load_dotenv
 from shared.auth import TokenData
@@ -60,14 +61,19 @@ def generate_project(
 def test_price_range_alternatives_(token_data: TokenData, project_id: str):
     """Test 'Price Range Alternatives'"""
     url = os.getenv("DODO_URL").rstrip("/")
-    
+
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {token_data['access_token']}",
     }
 
-    sequence_data = {"viewed_product": "premium_laptop", "viewed_price": 2000.0, "budget_range": "under_1000", "preferred_features": ["fast_processor", "good_battery", "lightweight"]}
-    
+    sequence_data = {
+        "viewed_product": "premium_laptop",
+        "viewed_price": 2000.0,
+        "budget_range": "under_1000",
+        "preferred_features": ["fast_processor", "good_battery", "lightweight"],  # noqa
+    }
+
     template = "You viewed {viewed_product} at ${viewed_price}. Here are alternatives under $1000 with {preferred_features}"  # noqa
 
     payload = {"sequence_data": sequence_data, "template": template}
@@ -76,7 +82,7 @@ def test_price_range_alternatives_(token_data: TokenData, project_id: str):
         print("=== Testing Price Range Alternatives ===")
         print(f"Template: {template}")
         print(f"Sequence Data: {sequence_data}")
-        
+
         response = requests.post(
             url=f"{url}/api/recommend/recommend",
             params={
@@ -88,7 +94,7 @@ def test_price_range_alternatives_(token_data: TokenData, project_id: str):
             headers=headers,
             json=payload,
         )
-        
+
         print(f"Response Status: {response.status_code}")
         if response.status_code == 200:
             result = response.json()
@@ -114,7 +120,7 @@ if __name__ == "__main__":
     # Generate project
     project_id = generate_project(
         name="Price Range Alternatives  Test",
-        description="Test project for test price range alternatives  recommendations",
+        description="Test project for test price range alternatives  recommendations",  # noqa
     )
 
     # Make recommendations
