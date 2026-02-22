@@ -1,5 +1,6 @@
 """
-Test Case: 'Price Range Alternatives' Similar products in different price ranges
+Test Case: 'Price Range Alternatives'
+Similar products in different price ranges
 """
 
 import os
@@ -68,13 +69,24 @@ def test_price_range_alternatives_(token_data: TokenData, project_id: str):
     }
 
     sequence_data = {
-        "viewed_product": "premium_laptop",
-        "viewed_price": 2000.0,
+        "viewed_product": "laptop_001",
+        "viewed_price": 1299.99,
         "budget_range": "under_1000",
-        "preferred_features": ["fast_processor", "good_battery", "lightweight"],  # noqa
+        "preferred_features": ["fast_processor", "good_battery", "lightweight"],
+        "alternative_brands": ["TechBrand", "ProComp", "ReadTech"],
+        "target_categories": ["electronics"],
     }
 
-    template = "You viewed {viewed_product} at ${viewed_price}. Here are alternatives under $1000 with {preferred_features}"  # noqa
+    template = (
+        "You viewed {viewed_product} at ${viewed_price}. "
+        "Find alternatives under ${budget_range} with {preferred_features}. "
+        "Consider brands: {alternative_brands} in categories: {target_categories}"
+    )
+
+    # Note: This is basic user context and shopping history.
+    # Dodo acts as reranking step only - it doesn't calculate
+    # native price range algorithms but reranks existing products
+    # based on user preferences and context.
 
     payload = {"sequence_data": sequence_data, "template": template}
 
@@ -109,6 +121,62 @@ def test_price_range_alternatives_(token_data: TokenData, project_id: str):
         return None
 
 
+def upload_entities(project_id: str, token_data: dict):
+    """Upload product entities to project using the entities service"""
+
+    url = os.getenv("ENTITIES_URL", os.getenv("DODO_URL")).rstrip("/")
+
+    headers = {
+        "Authorization": f"Bearer {token_data['access_token']}",
+    }
+
+    try:
+        print("=== Uploading Product Entities ===")
+
+        with (
+            open("product_catalog.csv", "rb") as catalog_file,
+            open("entity_template.json", "rb") as template_file,
+        ):
+
+            files = {
+                "files": ("entities.csv", catalog_file, "text/csv"),
+                "template_file": (
+                    "entity_template.json",
+                    template_file,
+                    "application/json",
+                ),
+            }
+
+            response = requests.post(
+                url=f"{url}/api/entities/ingest",
+                params={
+                    "project_id": project_id,
+                    "user_id": token_data["user_id"],
+                    "source": "files",
+                    "primary_key": "entity_id",
+                    "model_key": "bert",
+                },
+                headers=headers,
+                files=files,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                print("✓ Entity ingestion successful!")
+                print(f"Response: {result}")
+                return result
+            else:
+                print(f"✗ Entity ingestion failed: {response.text}")
+                return None
+
+    except Exception as e:
+        print(f"Entity ingestion failed: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            print(f"Response status: {e.response.status_code}")
+            print(f"Response content: {e.response.text}")
+        return None
+
+
 if __name__ == "__main__":
     email = "YOUR_EMAIL_ADDRESS"
     password = "YOUR_PASSWORD"
@@ -119,9 +187,27 @@ if __name__ == "__main__":
 
     # Generate project
     project_id = generate_project(
-        name="Price Range Alternatives  Test",
-        description="Test project for test price range alternatives  recommendations",  # noqa
+        name="Price Range Alternatives Test",
+        description="Test project for price range alternatives with reranking",
     )
+
+    # Upload entities (aka products in e-commerce and retail contexts)
+    upload_entities(project_id, token_data)
 
     # Make recommendations
     test_price_range_alternatives_(token_data, project_id)
+
+    # Possible result:
+    # {
+    #   "status_code": 200,
+    #   "results": [
+    #     "budget_laptop_001",
+    #     "midrange_laptop_001",
+    #     "refurbished_laptop_001",
+    #     "tablet_laptop_hybrid_001"
+    #   ]
+    # }
+    #
+    # Note: Dodo doesn't fully support native price range algorithms,
+    # but can help with reranking alternatives based on
+    # user preferences and budget constraints for better engagement.

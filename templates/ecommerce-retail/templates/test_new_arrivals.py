@@ -71,9 +71,14 @@ def test_new_arrivals_(token_data: TokenData, project_id: str):
         "user_interests": ["technology", "fitness", "outdoor"],
         "new_categories": ["smart_home", "wearables", "camping_gear"],
         "launch_period": "last_30_days",
+        "target_brands": ["TechCorp", "AudioPro", "ReadTech"],
+        "price_range": "medium",
     }
 
-    template = "Discover new arrivals in {new_categories} from {launch_period} based on your interest in {user_interests}"  # noqa
+    template = (
+        "Discover new arrivals in {new_categories} from {launch_period} based on {user_interests}. "
+        "Focus on brands: {target_brands} in {price_range} price range."
+    )
 
     payload = {"sequence_data": sequence_data, "template": template}
 

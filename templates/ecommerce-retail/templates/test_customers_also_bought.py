@@ -69,14 +69,17 @@ def test_customers_also_bought(token_data: TokenData, project_id: str):
     }
 
     sequence_data = {
-        "current_product": "laptop",
+        "current_product": "laptop_001",
         "product_category": "electronics",
         "price_range": "medium",
+        "related_brands": ["TechBrand", "ProComp"],
+        "frequently_bought": ["headphones_001", "mouse_001", "camera_001"],
     }
 
     template = (
         "Recommend products frequently bought together with {current_product} "
-        "in {product_category} category"
+        "in {product_category} category. Focus on {related_brands} and items like {frequently_bought}. "
+        "Consider {price_range} price range."
     )
 
     payload = {"sequence_data": sequence_data, "template": template}

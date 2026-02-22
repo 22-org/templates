@@ -1,5 +1,6 @@
 """
-Test Case: 'Personalized Result Ranking' Reorder search results based on user behavior
+Test Case: 'Personalized Result Ranking'
+Reorder search results based on user behavior
 """
 
 import os
@@ -70,11 +71,23 @@ def test_personalized_result_ranking_(token_data: TokenData, project_id: str):
     sequence_data = {
         "search_query": "laptop",
         "user_history": ["electronics", "computers", "gaming"],
-        "purchase_history": ["dell_xps", "macbook_pro"],
+        "purchase_history": ["laptop_001", "smartphone_001"],
         "price_sensitivity": "medium",
+        "preferred_brands": ["TechBrand", "ProComp"],
+        "desired_features": ["high_performance", "portable", "good_battery"],
     }
 
-    template = "Rank search results for '{search_query}' based on user's history with {user_history} and purchases of {purchase_history}"  # noqa
+    template = (
+        "Rank search results for '{search_query}' based on user's history "
+        "with {user_history} and purchases of {purchase_history}. "
+        "Consider {price_sensitivity} price sensitivity, "
+        "preferred brands: {preferred_brands}, and desired features: {desired_features}"  # noqa
+    )
+
+    # Note: This is basic user context and shopping history.
+    # Dodo acts as reranking step only - it doesn't calculate
+    # native personalized ranking algorithms but reranks existing products
+    # based on user preferences and context.
 
     payload = {"sequence_data": sequence_data, "template": template}
 
@@ -109,6 +122,62 @@ def test_personalized_result_ranking_(token_data: TokenData, project_id: str):
         return None
 
 
+def upload_entities(project_id: str, token_data: dict):
+    """Upload product entities to project using the entities service"""
+
+    url = os.getenv("ENTITIES_URL", os.getenv("DODO_URL")).rstrip("/")
+
+    headers = {
+        "Authorization": f"Bearer {token_data['access_token']}",
+    }
+
+    try:
+        print("=== Uploading Product Entities ===")
+
+        with (
+            open("product_catalog.csv", "rb") as catalog_file,
+            open("entity_template.json", "rb") as template_file,
+        ):
+
+            files = {
+                "files": ("entities.csv", catalog_file, "text/csv"),
+                "template_file": (
+                    "entity_template.json",
+                    template_file,
+                    "application/json",
+                ),
+            }
+
+            response = requests.post(
+                url=f"{url}/api/entities/ingest",
+                params={
+                    "project_id": project_id,
+                    "user_id": token_data["user_id"],
+                    "source": "files",
+                    "primary_key": "entity_id",
+                    "model_key": "bert",
+                },
+                headers=headers,
+                files=files,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                print("✓ Entity ingestion successful!")
+                print(f"Response: {result}")
+                return result
+            else:
+                print(f"✗ Entity ingestion failed: {response.text}")
+                return None
+
+    except Exception as e:
+        print(f"Entity ingestion failed: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            print(f"Response status: {e.response.status_code}")
+            print(f"Response content: {e.response.text}")
+        return None
+
+
 if __name__ == "__main__":
     email = "YOUR_EMAIL_ADDRESS"
     password = "YOUR_PASSWORD"
@@ -119,9 +188,27 @@ if __name__ == "__main__":
 
     # Generate project
     project_id = generate_project(
-        name="Personalized Result Ranking  Test",
-        description="Test project for test personalized result ranking  recommendations",  # noqa
+        name="Personalized Result Ranking Test Case",
+        description="Test project for personalized result ranking with reranking",  # noqa
     )
+
+    # Upload entities (aka products in e-commerce and retail contexts)
+    upload_entities(project_id, token_data)
 
     # Make recommendations
     test_personalized_result_ranking_(token_data, project_id)
+
+    # Possible result:
+    # {
+    #   "status_code": 200,
+    #   "results": [
+    #     "laptop_gaming_001",
+    #     "laptop_ultrabook_001",
+    #     "laptop_business_001",
+    #     "laptop_student_001"
+    #   ]
+    # }
+    #
+    # Note: Dodo doesn't fully support native personalized ranking algorithms,
+    # but can help with reranking search results based on
+    # user behavior and preferences for better engagement.

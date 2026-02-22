@@ -1,13 +1,20 @@
 {
-    "template": "Show trending products in {trending_categories} for {user_segment} from {time_period}, then rerank based on user preferences",
-    "required_fields": [
-        "trending_categories",
-        "user_segment",
-        "time_period"
-    ],
+    "template": "Dynamic template - variables are extracted from the template string itself",
+    "description": "The template serves as a flexible schema where {variable_names} in the template string define the expected fields in sequence_data",
+    "example_usage": {
+        "template": "Complete the query '{partial_query}' based on {previous_searches} and interest in {user_category_preference}",
+        "sequence_data": {
+            "partial_query": "lap",
+            "previous_searches": [
+                "laptop",
+                "tablet"
+            ],
+            "user_category_preference": "electronics"
+        }
+    },
     "output_fields": [
         "recommended_products",
-        "trending_scores",
-        "rerank_adjustments"
+        "relevance_scores",
+        "ranking_reasons"
     ]
 }

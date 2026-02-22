@@ -72,9 +72,15 @@ def test_category_aware_search_(token_data: TokenData, project_id: str):
         "preferred_categories": ["electronics", "books", "home"],
         "avoid_categories": ["clothing", "beauty"],
         "season": "holiday",
+        "target_brands": ["TechCorp", "AudioPro", "ReadTech"],
+        "price_range": "medium",
     }
 
-    template = "For '{search_query}' search, prioritize results from {preferred_categories} and avoid {avoid_categories} for {season} season"  # noqa
+    template = (
+        "For '{search_query}' search, prioritize results from {preferred_categories} "
+        "and avoid {avoid_categories} for {season} season. "
+        "Focus on brands: {target_brands} in {price_range} price range."
+    )
 
     payload = {"sequence_data": sequence_data, "template": template}
 

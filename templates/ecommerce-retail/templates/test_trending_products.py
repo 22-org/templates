@@ -69,15 +69,15 @@ def test_trending_products(token_data: TokenData, project_id: str):
         "user_segment": "young_professionals",
         "time_period": "last_7_days",
         "trending_categories": ["electronics", "fashion", "home"],
+        "price_range": "medium",
+        "preferred_brands": ["TechCorp", "AudioPro", "ReadTech"],
+        "key_features": ["wireless", "portable", "high_performance"],
     }
-    # Note: This is basic user context and shopping history.
-    # Dodo acts as reranking step only - it doesn't calculate
-    # native trending algorithms but reranks existing products
-    # based on user preferences and context.
 
     template = (
         "Show trending products in {trending_categories} for {user_segment} "
-        "from {time_period}"
+        "from {time_period}. Focus on {price_range} price range, "
+        "brands: {preferred_brands}, and features: {key_features}"
     )
 
     payload = {"sequence_data": sequence_data, "template": template}

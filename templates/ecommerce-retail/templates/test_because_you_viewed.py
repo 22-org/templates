@@ -69,18 +69,20 @@ def test_because_you_viewed(token_data: TokenData, project_id: str):
     }
 
     sequence_data = {
-        "current_session_views": [
-            "smartphone_001",
-            "laptop_001",
-            "headphones_001",
-        ],  # noqa
+        "current_session_views": ["smartphone_001", "laptop_001", "headphones_001"],
         "session_duration": "15_minutes",
         "view_time": "evening",
+        "user_preferences": {
+            "preferred_brands": ["TechCorp", "AudioPro", "TechBrand"],
+            "price_sensitivity": "medium",
+            "desired_categories": ["electronics"],
+        },
     }
 
     template = (
-        "Since you viewed {current_session_views} in the {view_time}, "
-        "recommend related products for your active session"
+        "Since you viewed {current_session_views} in {view_time} for {session_duration}, "
+        "recommend related products considering your preferences: {user_preferences}. "
+        "Focus on complementary items to your viewed products."
     )
 
     payload = {"sequence_data": sequence_data, "template": template}

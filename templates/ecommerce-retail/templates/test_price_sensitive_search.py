@@ -1,5 +1,6 @@
 """
-Test Case: 'Price-sensitive Search' Adjust results based on price sensitivity
+Test Case: 'Price-sensitive Search'
+Adjust results based on price sensitivity
 """
 
 import os
@@ -69,15 +70,23 @@ def test_price_sensitive_search_(token_data: TokenData, project_id: str):
 
     sequence_data = {
         "search_query": "headphones",
-        "typical_price_range": "50-100",
+        "price_range": "50-100",
         "price_sensitivity": "high",
         "value_preferences": ["durability", "sound_quality"],
+        "target_brands": ["AudioPro", "TechCorp"],
+        "required_features": ["wireless", "noise_cancelling"],
     }
 
     template = (
-        "Search for '{search_query}' in ${typical_price_range} range, "
-        "focusing on {value_preferences} for price-sensitive user"
+        "Search for '{search_query}' in ${price_range} range for {price_sensitivity} "
+        "sensitivity user. Focus on {value_preferences} from brands: {target_brands} "
+        "with features: {required_features}"
     )
+
+    # Note: This is basic user context and shopping history.
+    # Dodo acts as reranking step only - it doesn't calculate
+    # native price-sensitive algorithms but reranks existing products
+    # based on user preferences and context.
 
     payload = {"sequence_data": sequence_data, "template": template}
 
@@ -112,6 +121,62 @@ def test_price_sensitive_search_(token_data: TokenData, project_id: str):
         return None
 
 
+def upload_entities(project_id: str, token_data: dict):
+    """Upload product entities to project using the entities service"""
+
+    url = os.getenv("ENTITIES_URL", os.getenv("DODO_URL")).rstrip("/")
+
+    headers = {
+        "Authorization": f"Bearer {token_data['access_token']}",
+    }
+
+    try:
+        print("=== Uploading Product Entities ===")
+
+        with (
+            open("product_catalog.csv", "rb") as catalog_file,
+            open("entity_template.json", "rb") as template_file,
+        ):
+
+            files = {
+                "files": ("entities.csv", catalog_file, "text/csv"),
+                "template_file": (
+                    "entity_template.json",
+                    template_file,
+                    "application/json",
+                ),
+            }
+
+            response = requests.post(
+                url=f"{url}/api/entities/ingest",
+                params={
+                    "project_id": project_id,
+                    "user_id": token_data["user_id"],
+                    "source": "files",
+                    "primary_key": "entity_id",
+                    "model_key": "bert",
+                },
+                headers=headers,
+                files=files,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                print("✓ Entity ingestion successful!")
+                print(f"Response: {result}")
+                return result
+            else:
+                print(f"✗ Entity ingestion failed: {response.text}")
+                return None
+
+    except Exception as e:
+        print(f"Entity ingestion failed: {e}")
+        if hasattr(e, "response") and e.response is not None:
+            print(f"Response status: {e.response.status_code}")
+            print(f"Response content: {e.response.text}")
+        return None
+
+
 if __name__ == "__main__":
     email = "YOUR_EMAIL_ADDRESS"
     password = "YOUR_PASSWORD"
@@ -123,8 +188,26 @@ if __name__ == "__main__":
     # Generate project
     project_id = generate_project(
         name="Price-sensitive Search Test",
-        description="Test project for price-sensitive search recommendations",
+        description="Test project for price-sensitive search with reranking",
     )
+
+    # Upload entities (aka products in e-commerce and retail contexts)
+    upload_entities(project_id, token_data)
 
     # Make recommendations
     test_price_sensitive_search_(token_data, project_id)
+
+    # Possible result:
+    # {
+    #   "status_code": 200,
+    #   "results": [
+    #     "budget_headphones_001",
+    #     "value_headphones_001",
+    #     "discount_headphones_001",
+    #     "refurbished_headphones_001"
+    #   ]
+    # }
+    #
+    # Note: Dodo doesn't fully support native price-sensitive algorithms,
+    # but can help with reranking search results based on
+    # user price sensitivity and value preferences for better engagement.

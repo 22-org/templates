@@ -70,12 +70,18 @@ def test_brand_preference_integration_(token_data: TokenData, project_id: str):
 
     sequence_data = {
         "search_query": "smartphone",
-        "preferred_brands": ["apple", "samsung"],
+        "preferred_brands": ["TechCorp", "AudioPro"],
         "avoid_brands": ["unknown_brands"],
         "brand_loyalty": "high",
+        "price_range": "medium",
+        "desired_features": ["wireless", "high_performance", "portable"],
     }
 
-    template = "For '{search_query}' search, boost results from {preferred_brands} and avoid {avoid_brands} for brand-loyal user"  # noqa
+    template = (
+        "For '{search_query}' search, boost results from {preferred_brands} and avoid {avoid_brands}. "
+        "User has {brand_loyalty} brand loyalty, prefers {price_range} price range, "
+        "and wants features: {desired_features}"
+    )
 
     payload = {"sequence_data": sequence_data, "template": template}
 

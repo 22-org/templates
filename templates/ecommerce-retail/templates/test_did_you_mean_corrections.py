@@ -69,11 +69,17 @@ def test_did_you_mean_corrections_(token_data: TokenData, project_id: str):
 
     sequence_data = {
         "misspelled_query": "laptap",
-        "user_vocabulary": ["laptop", "tablet", "notebook"],
+        "user_vocabulary": ["laptop_001", "tablet_001", "notebook_001"],
         "common_typos": ["laptap", "labtop", "laptopp"],
+        "target_entities": ["laptop_001", "notebook_001"],
+        "preferred_brands": ["TechBrand", "ProComp"],
     }
 
-    template = "Correct '{misspelled_query}' based on user's vocabulary {user_vocabulary} and common typos {common_typos}"  # noqa
+    template = (
+        "Correct '{misspelled_query}' based on user's vocabulary {user_vocabulary} "
+        "and common typos {common_typos}. Suggest entities: {target_entities} "
+        "from brands: {preferred_brands}"
+    )
 
     payload = {"sequence_data": sequence_data, "template": template}
 

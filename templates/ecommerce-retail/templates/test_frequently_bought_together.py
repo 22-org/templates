@@ -69,14 +69,17 @@ def test_frequently_bought_together(token_data: TokenData, project_id: str):
     }
 
     sequence_data = {
-        "current_product": "smartphone",
-        "related_products": ["phone_case", "screen_protector"],
+        "current_product": "smartphone_001",
+        "related_products": ["headphones_001", "camera_001"],
         "bundle_savings": 15.0,
+        "target_brands": ["TechCorp", "AudioPro", "PhotoPro"],
+        "bundle_categories": ["electronics", "accessories"],
     }
 
     template = (
         "Suggest product bundles that include {current_product} with "
-        "{related_products}, offering {bundle_savings}% savings"
+        "{related_products}, offering {bundle_savings}% savings. "
+        "Focus on brands: {target_brands} in categories: {bundle_categories}"
     )
 
     payload = {"sequence_data": sequence_data, "template": template}

@@ -68,17 +68,20 @@ def test_context_aware_search_(token_data: TokenData, project_id: str):
     }
 
     sequence_data = {
-        "search_query": "restaurant",
+        "search_query": "headphones",
         "current_time": "evening",
         "user_location": "downtown",
         "device_type": "mobile",
         "weather": "rainy",
+        "preferred_brands": ["AudioPro", "TechCorp"],
+        "price_sensitivity": "medium",
     }
 
     template = (
         "Search for '{search_query}' in {user_location} during {current_time} "
-        "on {device_type}, considering {weather} weather"
-    )  # noqa
+        "on {device_type}, considering {weather} weather. "
+        "Focus on brands: {preferred_brands} for {price_sensitivity} price sensitivity."
+    )
 
     payload = {"sequence_data": sequence_data, "template": template}
 

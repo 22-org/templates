@@ -68,12 +68,17 @@ def test_complete_collection_(token_data: TokenData, project_id: str):
     }
 
     sequence_data = {
-        "owned_products": ["iphone_13", "airpods_pro"],
-        "product_ecosystem": "apple",
-        "missing_items": ["macbook", "ipad", "apple_watch"],
+        "owned_products": ["smartphone_001", "headphones_001"],
+        "product_ecosystem": "electronics",
+        "missing_items": ["laptop_001", "tablet_001", "camera_001"],
+        "preferred_brands": ["TechCorp", "AudioPro", "PhotoPro"],
+        "budget_range": "medium",
     }
 
-    template = "Help complete your {product_ecosystem} collection. You already have {owned_products}, consider {missing_items}"  # noqa
+    template = (
+        "Help complete your {product_ecosystem} collection. You already have {owned_products}, "
+        "consider {missing_items} from brands: {preferred_brands} in {budget_range} budget range."
+    )
 
     payload = {"sequence_data": sequence_data, "template": template}
 
