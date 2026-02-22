@@ -1,0 +1,140 @@
+"""
+Test Case: Insurance Policy Recommendations
+Suggest insurance products based on life stage and needs
+"""
+
+import os
+
+import requests
+from dotenv import load_dotenv
+from shared.auth import TokenData
+
+load_dotenv(dotenv_path=".env")
+
+DODO_URL = "https://api.trydodo.xyz"
+
+
+def get_jwt_token(email: str, password: str):
+    """Sign in and extract JWT token"""
+    url = os.getenv("DODO_URL").rstrip("/")
+    try:
+        response = requests.post(
+            f"{url}/api/users/login",
+            json={"email": email, "password": password},
+            headers={"Content-Type": "application/json"},
+        )
+        response.raise_for_status()
+        response = response.json()
+        return {
+            "access_token": response["access_token"],
+            "refresh_token": response["refresh_token"],
+            "user_id": response["user_id"],
+            "expires_in": response["expires_in"],
+        }
+    except Exception as e:
+        print(f"Sign in failed: {e}")
+        return None
+
+
+def generate_project(
+    project_name: str,
+    project_description: str,
+):
+    """Generate a project"""
+    url = os.getenv("DODO_URL").rstrip("/")
+    try:
+        response = requests.post(
+            f"{url}/api/projects/create",
+            headers={"Content-Type": "application/json"},
+            json={
+                "name": project_name,
+                "description": project_description,
+            },
+        )
+        response.raise_for_status()
+        response = response.json()
+        return response["project_id"]
+    except Exception as e:
+        print(f"Project generation failed: {e}")
+        return None
+
+
+def test_insurance_policy_recommendations(token_data: TokenData, project_id: str):
+    """Test Insurance Policy Recommendations"""
+    url = os.getenv("DODO_URL").rstrip("/")
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token_data['access_token']}",
+    }
+
+    sequence_data = {
+        "age": 38,
+        "family_status": "married_with_children",
+        "dependents": 2,
+        "annual_income": 95000,
+        "homeownership": "owner",
+        "mortgage_balance": 250000,
+        "health_status": "good",
+        "occupation": "office_worker",
+        "risk_factors": ["smoker", "frequent_traveler"],
+        "insurance_needs": ["life", "health", "disability", "home"]
+    }
+
+    template = (
+        "Recommend insurance policies for {age} year old, {family_status}, "
+        "{dependents} dependents, annual income ${annual_income}, "
+        "{homeownership} with ${mortgage_balance} mortgage, {health_status} health, "
+        "{occupation} occupation, risk factors {risk_factors}, "
+        "seeking {insurance_needs} insurance"
+    )
+
+    payload = {"sequence_data": sequence_data, "template": template}
+
+    try:
+        print("=== Testing Insurance Policy Recommendations ===")
+        print(f"Template: {template}")
+        print(f"Sequence Data: {sequence_data}")
+
+        response = requests.post(
+            url=f"{url}/api/recommend/recommend",
+            params={
+                "project_id": project_id,
+                "model_key": "bert",
+                "num_results": 10,
+                "user_id": token_data["user_id"],
+            },
+            headers=headers,
+            json=payload,
+        )
+
+        print(f"Response Status: {response.status_code}")
+        if response.status_code == 200:
+            result = response.json()
+            print(f"Recommendations: {result}")
+            return result
+        else:
+            print(f"Error Response: {response.text}")
+            return None
+
+    except Exception as e:
+        print(f"Request failed: {e}")
+        return None
+
+
+if __name__ == "__main__":
+    email = "YOUR_EMAIL_ADDRESS"
+    password = "YOUR_PASSWORD"
+    project_id = "YOUR_PROJECT_ID"
+
+    # Sign-in
+    token_data = get_jwt_token(email, password)
+
+    # Generate project
+    project_id = generate_project(
+        name="Insurance Policy Recommendations Test",
+        description="Test project for insurance policy recommendations",
+    )
+
+    # Make recommendations
+    test_insurance_policy_recommendations(token_data, project_id)
