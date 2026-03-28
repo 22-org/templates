@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.stock-card {
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.stock-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    border-color: #d1d5db;
+}
+
+.positive {
+    color: #059669;
+}
+
+.negative {
+    color: #dc2626;
+}
+
+.neutral {
+    color: #6b7280;
+}
+
+.rank-badge {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+}
+
+.live-orders {
+    background: #f3f4f6;
+    color: #374151;
+    font-size: 0.875rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.modal-backdrop {
+    backdrop-filter: blur(4px);
+}
+
+.progress-bar {
+    transition: width 0.5s ease-in-out;
+}
