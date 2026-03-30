@@ -90,67 +90,18 @@ def test_customers_also_bought(token_data: TokenData, project_id: str):
         print(f"Sequence Data: {sequence_data}")
 
         response = requests.post(
-            url=f"{url}/api/recommend/recommend",
-            params={
-                "project_id": project_id,
-                "model_key": "bert",
-                "num_results": 10,
-                "user_id": token_data["user_id"],
+            url="https://api.trydodo.xyz/api/recommend",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {token_data['access_token']}",
             },
-            headers=headers,
-            json=payload,
-        )
-
-        print(f"Response Status: {response.status_code}")
-        if response.status_code == 200:
-            result = response.json()
-            print(f"Recommendations: {result}")
-            return result
-        else:
-            print(f"Error Response: {response.text}")
-            return None
-
-    except Exception as e:
-        print(f"Request failed: {e}")
-        return None
-
-
-def upload_entities(project_id: str, token_data: dict):
-    """Upload product entities to project using the entities service"""
-
-    url = os.getenv("ENTITIES_URL", os.getenv("DODO_URL")).rstrip("/")
-
-    headers = {
-        "Authorization": f"Bearer {token_data['access_token']}",
-    }
-
-    try:
-        print("=== Uploading Product Entities ===")
-
-        with (
-            open("product_catalog.csv", "rb") as catalog_file,
-            open("entity_template.json", "rb") as template_file,
-        ):
-
-            files = {
-                "files": ("entities.csv", catalog_file, "text/csv"),
-                "template_file": (
-                    "entity_template.json",
-                    template_file,
-                    "application/json",
-                ),
-            }
-
-            response = requests.post(
-                url=f"{url}/api/entities/ingest",
-                params={
-                    "project_id": project_id,
-                    "user_id": token_data["user_id"],
-                    "source": "files",
-                    "primary_key": "entity_id",
-                    "model_key": "bert",
-                },
-                headers=headers,
+            json={
+                "context": sequence_data,
+                "catalog": {},
+                "template": template,
+                "num_results": 10,
+                "model_key": "prag_v1"
+            },
                 files=files,
             )
 

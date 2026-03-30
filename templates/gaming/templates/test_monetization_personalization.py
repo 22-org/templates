@@ -78,15 +78,18 @@ def test_monetization_personalization_(token_data: TokenData, project_id: str):
         print(f"Sequence Data: {sequence_data}")
 
         response = requests.post(
-            url=f"{url}/api/recommend/recommend",
-            params={
-                "project_id": project_id,
-                "model_key": "bert",
-                "num_results": 10,
-                "user_id": token_data["user_id"],
+            url="https://api.trydodo.xyz/api/recommend",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {token_data['access_token']}",
             },
-            headers=headers,
-            json=payload,
+            json={
+                "context": sequence_data,
+                "catalog": {},
+                "template": template,
+                "num_results": 10,
+                "model_key": "prag_v1"
+            },
         )
 
         print(f"Response Status: {response.status_code}")

@@ -225,7 +225,6 @@ def test_{function_name}(token_data: TokenData, project_id: str):
                 "user_id": token_data["user_id"],
             }},
             headers=headers,
-            json=payload,
         )
 
         print(f"Response Status: {{response.status_code}}")

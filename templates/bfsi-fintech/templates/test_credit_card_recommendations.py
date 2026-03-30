@@ -76,10 +76,10 @@ def test_credit_card_recommendations(token_data: TokenData, project_id: str):
             "dining": 400,
             "travel": 600,
             "gas": 200,
-            "shopping": 300
+            "shopping": 300,
         },
         "lifestyle": "frequent_traveler",
-        "preferred_benefits": ["cash_back", "travel_points", "no_annual_fee"]
+        "preferred_benefits": ["cash_back", "travel_points", "no_annual_fee"],
     }
 
     template = (
@@ -96,44 +96,15 @@ def test_credit_card_recommendations(token_data: TokenData, project_id: str):
         print(f"Sequence Data: {sequence_data}")
 
         response = requests.post(
-            url=f"{url}/api/recommend/recommend",
-            params={
-                "project_id": project_id,
-                "model_key": "bert",
-                "num_results": 10,
-                "user_id": token_data["user_id"],
+            url="https://api.trydodo.xyz/api/recommend",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {token_data['access_token']}",
             },
-            headers=headers,
-            json=payload,
-        )
-
-        print(f"Response Status: {response.status_code}")
-        if response.status_code == 200:
-            result = response.json()
-            print(f"Recommendations: {result}")
-            return result
-        else:
-            print(f"Error Response: {response.text}")
-            return None
-
-    except Exception as e:
-        print(f"Request failed: {e}")
-        return None
-
-
-if __name__ == "__main__":
-    email = "YOUR_EMAIL_ADDRESS"
-    password = "YOUR_PASSWORD"
-    project_id = "YOUR_PROJECT_ID"
-
-    # Sign-in
-    token_data = get_jwt_token(email, password)
-
-    # Generate project
-    project_id = generate_project(
-        name="Credit Card Recommendations Test",
-        description="Test project for credit card recommendations",
-    )
-
-    # Make recommendations
-    test_credit_card_recommendations(token_data, project_id)
+            json={
+                "context": sequence_data,
+                "catalog": {},
+                "template": template,
+                "num_results": 10,
+                "model_key": "prag_v1"
+            },
